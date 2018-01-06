@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>课程笔记本</title>
+	<link rel="stylesheet" type="text/css" href="style/main.css">
+</head>
+<body>
+	<div class="banner">
+		<h1>我的学习笔记本</h1>
+		<h3>你的指尖，有改变世界的力量</h3>
+	</div>
+	<div class="classes">
+		<!-- <ul>
+			<li>
+				<div class="innerbox">
+					<img src="http://img.mukewang.com/574cf35000018ff106000338-240-135.jpg">
+					<div class="titlediv">
+						<span class="title">Struts2拦截器解析</span>
+						<span class="note">有笔记</span>
+					</div>
+					<div class="subtitle">Struts2拦截器解析原理和配置</div>
+					<div class="subtitle">时间：59分钟</div>
+				</div>
+			</li>
+		</ul> -->
+	</div>
+	<div id="pag" class="pag">
+	
+	</div>
+</body>
+<script type="text/javascript" src="js/jquery.js"></script>
+<script type="text/javascript" src="js/handlebars-v4.0.11.js"></script>
+<!-- 模板 -->
+<script type="text/x-handlerbars-template" id="classes-template">
+	<ul>
+		{{#each this}}
+		<li>
+			<div class="innerbox">
+				<img src={{image}} alt={{title}}>
+				<div class="titlediv">
+					<span class="title">{{title}}</span>
+					{{#equal hasnote 1}}
+					  <span class="note">(有笔记)</span>
+					{{/equal}}
+				</div>
+				<div class="subtitle">{{subtitle}}</div>
+				<div class="subtitle {{#long timespan }} long {{else}} short {{/long}}"  >时间：{{timespan}}</div>
+			</div>
+		</li>
+		{{/each}}
+	</ul>
+</script>
+
+<script type="text/x-handlerbars-template" id="pag-template">
+	<ul>
+		{{#each this}}
+		<li data-id={{index}} {{#if cur}} class="cur" {{/if}} {{#if clickable}} class="clickable" {{/if}}>{{{text}}}</li>
+		{{/each}}
+	</ul>
+</script>
+<script type="text/javascript">
+	$(document).ready(()=>{
+
+		const GETCLASSES = 'http://imoocnote.calfnote.com/inter/getClasses.php'
+
+		$.ajaxSetup({
+			error:function(){
+				alert('调用数据失败！')
+				return false
+			}
+		})
+	function formatPage(pageData) {
+        var pageArr = [];
+        var totalPageNum = parseInt(pageData.totalCount);
+        var curPageNum = parseInt(pageData.curPage);
+        //处理到首页的逻辑
+        var firstPage = {};
+        firstPage.index = 1;
+        firstPage.text = '&laquo;';
+        if (curPageNum != 1) {
+            firstPage.clickable = true;
+        }
+        pageArr.push(firstPage);
+
+        // 处理到上一页的逻辑
+        var prePage = {}
+        prePage.index = curPageNum - 1;
+        prePage.text = '&lsaquo;';
+        if (curPageNum != 1) {
+            prePage.clickable = true
+        }
+
+
+        pageArr.push(prePage);
+
+        //处理到当前页的逻辑
+        if (curPageNum <= 5) {
+            for (var i = 1; i < curPageNum; i++) {
+                var pag = {};
+                pag.text = i;
+                pag.index = i;
+                pag.clickable = true;
+                pageArr.push(pag);
+            }
+        } else {
+            //如果 cur>5,那么 cur 前的页要显示...
+
+            //加上首页
+            var pag = {}
+            pag.text = 1;
+            pag.index = 1;
+            pag.clickable = true;
+            pageArr.push(pag);
+
+            //加上...
+            var pag = {};
+            pag.text = '...';
+            pageArr.push(pag);
+
+            for (var i = curPageNum - 2; i < curPageNum; i++) {
+                var pag = {};
+                pag.text = i;
+                pag.index = i;
+                pag.clickable = true;
+                pageArr.push(pag);
+            }
+
+        }
+
+        // 处理当前页的逻辑
+        var curPage = {};
+        curPage.text = curPageNum;
+        curPage.index = curPageNum;
+        curPage.cur = true;
+        pageArr.push(curPage);
+
+        // 处理当前页之后的逻辑
+        if (curPageNum >= totalPageNum - 4) {
+            //当前页距离最大页小于4,全部显示
+            for (var i = curPageNum + 1; i <= totalPageNum; i++) {
+                var pag = {};
+                pag.index = i;
+                pag.text = i;
+                pag.clickable = true;
+                pageArr.push(pag);
+            }
+        } else {
+            for (var i = curPageNum + 1; i <= curPageNum + 2; i++) {
+                var pag = {};
+                pag.text = i;
+                pag.index = i;
+                pag.clickable = true;
+                pageArr.push(pag);
+            }
+
+            // 显示...
+            var pag = {};
+            pag.index = 0;
+            pag.text = "...";
+            pageArr.push(pag);
+
+            // 显示最后一页
+            var pag = {};
+            pag.index = totalPageNum;
+            pag.text = totalPageNum;
+            pag.clickable = true;
+            pageArr.push(pag);
+
+
+        }
+
+        // 下一页按钮
+        var nextPage = {};
+        nextPage.index = curPageNum + 1;
+        nextPage.text = '&rsaquo;';
+        if (curPageNum != totalPageNum) {
+            nextPage.clickable = true;
+        }
+        pageArr.push(nextPage);
+
+        // 最后一页按钮
+        var lastPage = {};
+        lastPage.index = totalPageNum;
+        lastPage.text = "&raquo;";
+        if (curPageNum != totalPageNum) {
+            lastPage.clickable = true;
+        }
+        pageArr.push(lastPage);
+        console.log(pageArr)
+        return pageArr;
+
+    }
+
+		
+
+		//获取模板HTML
+		let templateHtml = $('#classes-template').html()
+		let pagHtml = $('#pag-template').html()
+		Handlebars.registerHelper('equal',(v1,v2,options)=>{
+         if(v1 == v2){
+         	return options.fn(this)
+         }else{
+         	return options.inverse(this)
+         }
+		})
+		Handlebars.registerHelper('long',(v1,options)=>{
+         if(v1.indexOf('小时') != -1){
+         	return options.fn(this)
+         }else{
+         	return options.inverse(this)
+         }
+		})
+		let handlebarsHtml = Handlebars.compile(templateHtml)
+        let pagHandlebarsHtml = Handlebars.compile(pagHtml)
+		function getClasses(index){
+			$.getJSON(GETCLASSES, {curPage:index}, function(json, textStatus) {
+				/*optional stuff to do after success */
+				console.log(json)
+				let dataHtml = handlebarsHtml(json.data)
+				let pagData = formatPage(json)
+				let datapagHtml = pagHandlebarsHtml(pagData)
+
+				$('.classes').html(dataHtml)
+				$('#pag').html(datapagHtml)
+
+				$('li.clickable').on('click',function(){
+					$this = $(this)
+					
+					getClasses($this.data('id'))
+					
+				})
+				
+		});
+		}
+		//初始化
+		getClasses(1)
+
+	})
+</script>
+</html>

@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>handlebars</title>
+</head>
+<body>
+	<div id="card">
+		
+	</div>
+</body>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="handlebars-v4.0.11.js"></script>
+<script type="text/x-handlebars-template" id="card-template">
+	{{#each this}}
+	   <div class="cards">
+	   	   <div>{{chinese @index}}</div>
+		   	<div >姓名：{{name}}</div>
+			<div >出生日期：{{birth}}</div>
+			{{#if home}}
+			<div >出生地：{{home}}</div>
+			{{/if}}
+			<div >职位：{{job}}</div>
+			<ul>
+				{{#each books}}
+					
+					   <li {{#isFirst @index}} style="color:red" {{/isFirst}}
+                            {{#isBule ../books}} style="color:blue"{{/isBule}}
+					   >{{addone @../index}}-{{addone @index}}{{this}}></li>
+					
+				{{/each}}
+			</ul>
+	   </div>
+	{{/each}}
+</script>
+<script type="text/javascript">
+	let data = [
+	{
+		name:'majian',
+		birth:'1995-08-18',
+		home:'henan',
+		job:'CTO',
+		books:[
+         '苹果网友引力',
+         '如何做一个有B哥的人'
+		]
+	},
+    {
+		name:'xinyu',
+		birth:'1995-08-18',
+		home:'mark',
+		job:'CEO',
+		books:[
+         '苹果网友引力'
+		]
+	},
+	{
+		name:'Kasa',
+		birth:'1995-08-18',
+		
+		job:'CEO',
+		books:[
+         '苹果网友引力'
+		]
+	}
+	]
+    Handlebars.registerHelper('chinese',(index)=>{
+       var arr = ['一','二','三']
+       return arr[index]
+    })
+    Handlebars.registerHelper('addone',(index)=>{
+    	return index + 1 
+    })
+    Handlebars.registerHelper('isFirst',(index,options)=>{
+    	if(index === 0){
+    		return options.fn(this)
+    	}
+    })
+    Handlebars.registerHelper('isBule',(books,options)=>{
+    	if(books.length >= 1){
+    		return options.fn(this)
+    	}
+    })
+	let handbarsHtml = $('#card-template').html()
+	let compileHtml = Handlebars.compile(handbarsHtml)
+	let dataHtml = compileHtml(data)
+	$('#card').html(dataHtml)
+</script>
+</html>
